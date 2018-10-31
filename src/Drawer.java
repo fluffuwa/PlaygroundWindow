@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -10,18 +9,29 @@ public class Drawer {
         this.n = n;
         this.nd = nd;
 
-        nd.addButton ("new", (ActionEvent e) -> {
-            Thread t = new Thread (()-> NetworkDisplay.main (new String []{}));
-            t.start ();
+        nd.addButton ("new", new Action () {
+            void thing() {
+                Thread t = new Thread(() -> NetworkDisplay.main(new String[]{}));
+                t.start();
+            }
         });
-        nd.addButton ("close", (ActionEvent e) ->{
-            nd.setVisible(false);
-            nd.stop = true;
-            nd.dispose ();
+        nd.addButton ("close", new Action () {
+            void thing() {
+                nd.setVisible(false);
+                nd.stop = true;
+                nd.dispose();
+            }});
+        nd.addButton ("new training batch", new Action () {
+            void thing() {
+                n.setQAArray();
+            }
         });
-        nd.addButton ("new training batch", (ActionEvent e)-> n.setQAArray());
-        nd.addButton ("train one batch",(ActionEvent e) -> n.runBatch());
-        nd.addButton (">/II slow training", (ActionEvent e) -> {
+        nd.addButton ("train one batch",new Action () {
+            void thing() {
+                n.runBatch();
+            }});
+        nd.addButton (">/II slow training", new Action () {
+            void thing() {
             if (nd.stop) {
                 nd.stop = false;
                 Thread tempThread = new Thread(() ->{
@@ -48,23 +58,26 @@ public class Drawer {
 
             } else
                 nd.stop = true;
-        });
-        nd.addButton (">/II fast training",(ActionEvent e) ->{
-            if (nd.stop){
-                nd.stop = false;
-                Thread tempThread = new Thread (() ->{
-                    while (!nd.stop){
-                        n.runBatch();
-                    }
-                });
-                tempThread.start();
-            }
-            else
-                nd.stop = true;
-        });
-        nd.addButton ("lr * 2", (ActionEvent e) -> n.lr *= 2.0);
-        nd.addButton ("lr / 2", (ActionEvent e) -> n.lr /= 2.0);
-        nd.addButton ("update network", (ActionEvent e) -> updateNetwork = true);
+        }});
+        nd.addButton (">/II fast training",new Action () {
+            void thing() {
+                if (nd.stop) {
+                    nd.stop = false;
+                    Thread tempThread = new Thread(() -> {
+                        while (!nd.stop) {
+                            n.runBatch();
+                        }
+                    });
+                    tempThread.start();
+                } else
+                    nd.stop = true;
+            }});
+        nd.addButton ("lr * 2", new Action () {
+            void thing() { n.lr *= 2.0;}});
+        nd.addButton ("lr / 2", new Action () {
+            void thing() {n.lr /= 2.0;}});
+        nd.addButton ("update network", new Action () {
+            void thing() {updateNetwork = true;}});
 
         halfred = new Color(255, 0, 0, 122);
         halfblue = new Color (0, 0, 255, 122);
@@ -77,6 +90,25 @@ public class Drawer {
     Color halfred;
     Color halfblue;
     Color halfwhite;
+
+    XY selectedNeuron;
+
+    public void userClicked (int xPos, int yPos){
+        for (int x = 0; x < positions.size(); x ++){
+            for (int y = 0; y < positions.get(x).size(); y ++){
+                XY neuronPosition = positions.get(x).get(y);
+                if (xPos > neuronPosition.x - nd.neuronRadius &&
+                xPos < neuronPosition.x + nd.neuronRadius &&
+                yPos > neuronPosition.y - nd.neuronRadius &&
+                yPos < neuronPosition.y + nd.neuronRadius){
+                    //System.out.println (x + ", " + y);
+                    selectedNeuron = new XY(x, y);
+                    n.selectedNeuron = layers.get(x).get(y);
+                    return;
+                }
+            }
+        }
+    }
 
     private ArrayList <ArrayList <Neuron>> layers = new ArrayList<> ();
     private ArrayList <ArrayList <XY>> positions = new ArrayList<>();
@@ -102,17 +134,25 @@ public class Drawer {
 
                 nd.setColor(Color.BLACK);
 
-                for (int x = 0; x < n.errors.size(); x++) {
-
-                    //ignore some points if there are more points than "space" to display them
-
+                double count = 0;
+                double coun2 = 0;
+                //for (int x = 0; x < n.errors.size(); x++) {
+                //    if (count/errorGraphWidth < 1.0*x/n.errors.size()) {
+                //        count++;
+                //    }
+                //    else{
+                //        continue;
+                //    }
+                //    coun2 ++;
+                for (double x = 0; x < n.errors.size(); x += Math.max(n.errors.size()/errorGraphWidth, 1)){
+                    //pick your poison
                     int xPos = left + (int) (1.0 * x * errorGraphWidth / n.errors.size());
                     try {
-                        int yPos = (int) (((max - min) - (n.errors.get(x) - min)) * 100 / (max - min));
+                        int yPos = (int) (((max - min) - (n.errors.get((int)x) - min)) * 100 / (max - min));
                         nd.drawRect(xPos, yPos, 1, 1);
-                    } catch (Exception f) {
-                    }
+                    } catch (Exception f) {}
                 }
+                displayText.add (count+", " + coun2);
             }
             catch (Exception e){}
             nd.drawLine(left - 1, 0, left - 1, 101);
@@ -134,7 +174,7 @@ public class Drawer {
                     XY thisNeuron = positions.get(x).get(y);
 
                     for (int z = 0; z < layers.get(x).get(y).inputs.size(); z++) {
-                        XY neuronPos = getPosition(layers.get(x).get(y).inputs.get(z).n1);
+                        XY neuronPos = getNeuronLocationInArrayArray(layers.get(x).get(y).inputs.get(z).n1);
                         XY inputNeuron = positions.get(neuronPos.x).get(neuronPos.y);
 
                         double val = layers.get(x).get(y).inputs.get(z).w;
@@ -176,12 +216,12 @@ public class Drawer {
             }
 
             for (int x = 0; x < n.inputs.size(); x++) {
-                XY pos0 = getPosition(n.inputs.get(x));
+                XY pos0 = getNeuronLocationInArrayArray(n.inputs.get(x));
                 XY pos = positions.get(pos0.x).get (pos0.y);
                 nd.drawString("in " + x, pos.x - neuronRadius * 2, pos.y, "middle");
             }
             for (int x = 0; x < n.outputs.size(); x++) {
-                XY pos0 = getPosition(n.outputs.get(x));
+                XY pos0 = getNeuronLocationInArrayArray(n.outputs.get(x));
                 XY pos = positions.get(pos0.x).get(pos0.y);
                 nd.drawString("out " + x, pos.x + neuronRadius * 2, pos.y, "middle");
             }
@@ -211,9 +251,9 @@ public class Drawer {
                         mins [y] = lastBatch.get(x)[y];
                 }
             }
-            displayText.add (maxes[0]+" " + mins[0]);
-            displayText.add (maxes[1]+" " + mins[1]);
-            displayText.add (maxes[2]+" " + mins[2]);
+            //displayText.add (maxes[0]+" " + mins[0]);
+            //displayText.add (maxes[1]+" " + mins[1]);
+            //displayText.add (maxes[2]+" " + mins[2]);
 
             if (lastBatch.get(0).length == 3 && n.inputs.size() == 2){
 
@@ -250,17 +290,19 @@ public class Drawer {
                 }
             }
 
-            displayText.add (nd.keyboard);
             displayText.add ("lr: " + n.lr);
+
+            displayText.add (nd.keyboard);
 
             nd.setColor(Color.BLACK);
             for (int x = 0; x < displayText.size(); x++)
-                nd.drawString(displayText.get(x), 0, fontSize * (x + 1), "bottomleft");
+                nd.drawString(displayText.get(x), 0, fontSize * (x + 1), "topleft");
         }
         catch (Exception e){
             e.printStackTrace();
         }
     }
+
 
 
     boolean updateNetwork = true;
@@ -296,13 +338,16 @@ public class Drawer {
 
             }
 
+            selectedNeuron = getNeuronLocationInArrayArray(n.outputs.get(0));
+            n.selectedNeuron = n.outputs.get(0);
+
             nd.setButtonPositions();
 
             working = false;
         }
     }
 
-    private XY getPosition (Neuron n){
+    private XY getNeuronLocationInArrayArray(Neuron n){
         for (int x = 0; x < layers.size(); x ++){
             for (int y = 0; y < layers.get(x).size(); y ++){
                 if (layers.get(x).get(y) == n)

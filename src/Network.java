@@ -21,7 +21,7 @@ public class Network {//maybe wants some way to link multiple neurons together? 
 
         setNetworkForQA();
 
-        runBatch();
+        //runBatch();
     }
 
     int batchesRun = 0;
@@ -73,6 +73,7 @@ public class Network {//maybe wants some way to link multiple neurons together? 
         sortNeurons();
     }
 
+    Neuron selectedNeuron;
 
     //maybe also include mins and maxes for that batch of runs?.. in either case it flashes though I think
     public ArrayList<double[]> thisBatchPoints;//for plotting on the display
@@ -87,13 +88,11 @@ public class Network {//maybe wants some way to link multiple neurons together? 
 
             double[] results = feedForward(test.realInputs);
 
-            double[] record = new double[inputs.size() + results.length];
+            double[] record = new double[inputs.size() + 1];
             for (int x = 0; x < inputs.size(); x++) {
                 record[x] = test.realInputs[x];
             }
-            for (int y = 0; y < results.length; y++) {
-                record[inputs.size() + y] = results[y];
-            }
+            record[inputs.size()] = selectedNeuron.value;
             nextBatchPoints.add (record);
 
             totalError += (backprop(test.realOutputs));

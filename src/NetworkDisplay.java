@@ -88,9 +88,11 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     boolean stop = true;
 
     private ArrayList<JButton> buttons = new ArrayList<>();
-    void addButton (String name, ActionListener e){
+    void addButton (String name, Action e){
         JButton newButton = new JButton (name);
-        newButton.addActionListener (e);
+        newButton.addActionListener ((ActionEvent f)->
+            e.thing()
+        );
         buttons.add (newButton);
         newButton.setText("[" + ((char)(buttons.size()-1 + 97)) + "] " + buttons.get(buttons.size()-1).getText());
         newButton.addActionListener ((ActionEvent f)-> NetworkDisplay.this.requestFocus());//put the focus back onto the jframe
@@ -141,6 +143,10 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
             g.fillRect (x, y + 1, width, fontSize);
         if (position.equals ("bottomright"))
             g.fillRect (x - width, y - fontSize + 1, width, fontSize);
+        if (position.equals ("bottomleft"))
+            g.fillRect (x, y - fontSize + 1, width, fontSize);
+        if (position.equals ("bottommiddle"))
+            g.fillRect (x - width/2, y - fontSize + 1, width, fontSize);
         if (position.equals ("middleright"))
             g.fillRect (x - width, y - fontSize/2, width, fontSize);
 
@@ -155,6 +161,10 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
             g.drawString (text, x, y + fontSize);
         if (position.equals ("bottomright"))
             g.drawString (text, x - width, y);
+        if (position.equals ("bottomleft"))
+            g.drawString (text, x, y);
+        if (position.equals ("bottommiddle"))
+            g.drawString (text, x - width/2, y);
         if (position.equals ("middleright"))
             g.drawString (text, x - width, y + fontSize/2);
     }
@@ -202,11 +212,10 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     }
 
     public void mouseReleased (MouseEvent event){//called when the mouse button is released
-
+        d.userClicked(event.getX() - 8, event.getY() - 31);
     }
     public void mousePressed (MouseEvent event){//called when the mouse button is pressed, but doesn't continue firing
         //System.out.println (event.getX() + ", " + event.getY());
-
 
         //put in click+dragging neurons (with neuronRadius and positions
         //when clicked on, make it the "focused" neuron, showing stats and extra buttons
