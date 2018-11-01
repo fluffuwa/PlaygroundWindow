@@ -1,0 +1,6 @@
+press and drag neuron onto another neuron to merge them, (averaging their inputs and adding their outputs) or subtractions
+long press to delete neuron
+double press to add a neuron to that layer (random inputs, 0 for weight to outputs)
+
+"trim" button to automatically to the above
+

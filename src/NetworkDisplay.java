@@ -21,8 +21,7 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
 
         n = new Network();
 
-        setSize (1000, 800);
-
+        setSize (900 + 8, 800 + 31);
         setResizable(false);
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -36,11 +35,10 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
         setLayout (null);
         setVisible (true);
 
-
         setContentPane (new JPanel (){
             public void paintComponent (Graphics g) {
                 if (d != null){
-                    NetworkDisplay.this.g = g;
+                    NetworkDisplay.this.g = g;//set this class' graphics for drawer to draw on
                     d.draw();
                 }
             }
@@ -70,7 +68,7 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
                     process ();
                     repaint();
                     try {
-                        Thread.sleep((int)(Math.max (-(System.currentTimeMillis () - time - 16), 0)));
+                        Thread.sleep((int)(Math.max (-(System.currentTimeMillis () - time - 33), 0)));
                     } catch (Exception e) {
                         System.out.println("um");
                     }
@@ -85,7 +83,6 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
         d.windowHeight = getContentPane().getSize().height;
     }
 
-    boolean stop = true;
 
     private ArrayList<JButton> buttons = new ArrayList<>();
     void addButton (String name, Action e){
@@ -116,23 +113,36 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     void setFont (float font){
         g.setFont(g.getFont().deriveFont(font));
     }
+    void setAlpha (int value){
+        Color c = g.getColor ();
+        g.setColor (new Color (c.getRed (), c.getGreen(), c.getBlue (), value));
+    }
     void setColor (Color c){
         g.setColor (c);
     }
     void drawRect (int x, int y, int width, int height){
-        g.drawRect (x, y, width, height);
+        g.fillRect (x, y, width, height);
     }
     void drawOval (int x, int y, int diameter1, int diameter2){
-        g.drawOval (x, y, diameter1, diameter2);
+        g.fillOval (x, y, diameter1, diameter2);
     }
+    //void drawSplotch (int x, int y, int diameter){
+    //    Color c = g.getColor ();
+    //    for (int count = 1; count <= diameter/2; count ++){
+    //        setColor (new Color (c.getRed (), c.getGreen(), c.getBlue(), (int)(255.0 * count / diameter)));
+    //        g.drawOval (x + count - 1, y + count - 1, diameter - count + 1, diameter - count + 1);
+    //    }
+    //    //g.drawOval (x, y, diameter1, diameter2);
+    //}
     void drawLine (int x1, int y1, int x2, int y2){
         g.drawLine (x1, y1, x2, y2);
     }
-    void drawString (String text, int x, int y, String position){
+    void drawString (String text, int x, int y, String position, Color bg){
         int width = g.getFontMetrics().stringWidth(text);
 
+        g.setColor (bg);
+
         ((Graphics2D) g).setStroke(new BasicStroke(1));
-        g.setColor (d.halfwhite);
         if (position.equals ("middle"))
             g.fillRect (x - width/2, y - fontSize/2+1, width, fontSize);
         if (position.equals ("topright"))
@@ -168,12 +178,12 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
         if (position.equals ("middleright"))
             g.drawString (text, x - width, y + fontSize/2);
     }
-    void drawDouble (double text, int x, int y, String position){
-        drawString ((Math.round(text * 1000.0)/1000.0)+"", x, y, position);
+    void drawDouble (double text, int x, int y, String position, Color bg){
+        drawString ((Math.round(text * 1000.0)/1000.0)+"", x, y, position, bg);
     }
-    void drawDouble (double text, int decimals, int x, int y, String position){
-        drawString ((Math.round(text * Math.pow (10, decimals))/Math.pow (10, decimals))+"", x, y, position);
-    }
+    //void drawDouble (double text, int decimals, int x, int y, String position){
+    //    drawString ((Math.round(text * Math.pow (10, decimals))/Math.pow (10, decimals))+"", x, y, position);
+    //}
 
     private void process (){
         d.updateNetwork();

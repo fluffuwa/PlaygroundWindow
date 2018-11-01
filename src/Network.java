@@ -6,14 +6,14 @@ import java.util.Collections;
 public class Network {//maybe wants some way to link multiple neurons together? for convolutional layers y'know
 
 
-    int testCase = QA.maxQA;
-    int[] hiddenLayerSizes = {4, 5, 4};
+    int testCase = QA.maxQA-1;
+    int[] hiddenLayerSizes = {4, 4, 2};
 
     int batchSize = 1000;
 
-    int maxErrorRecording = 100000;
+    int maxErrorRecording = 10000;
 
-    double lr = 0.01;
+    double lr = 0.05;
 
     public Network() {
 
@@ -43,6 +43,10 @@ public class Network {//maybe wants some way to link multiple neurons together? 
 
 
     public void setNetworkForQA (){
+        neurons = new ArrayList<>();
+        inputs = new ArrayList<>();
+        outputs = new ArrayList<>();
+
         for (int x = 0; x < QAArray.get(0).realInputs.length; x++)
             addInput();
         boolean[] sigmoidOrLinear = new boolean[QAArray.get(0).realOutputs.length];//true means sigmoid
@@ -65,9 +69,17 @@ public class Network {//maybe wants some way to link multiple neurons together? 
         }
         connect(prevLayer, outputs);
 
+        selectedNeuron = outputs.get(0);
+
         thisBatchPoints = new ArrayList<>();
-        for (int x = 0; x < batchSize; x++) {
-            thisBatchPoints.add(new double[inputs.size() + outputs.size()]);
+
+        for (int count2 = 0; count2 < batchSize; count2++) {
+            double[] record = new double[inputs.size() + 1];
+            for (int x = 0; x < inputs.size(); x++) {
+                record[x] = QAArray.get(count2).realInputs[x];
+            }
+            record[inputs.size()] = selectedNeuron.value;
+            thisBatchPoints.add(record);
         }
 
         sortNeurons();
@@ -189,7 +201,7 @@ public class Network {//maybe wants some way to link multiple neurons together? 
                 connect(neurons1.get(x), neurons2.get(y));
     }
 
-    private boolean displaySort = true;
+    private boolean displaySort = false;
 
     private void printList(ArrayList<Neuron> neurons) {
         if (displaySort) {
