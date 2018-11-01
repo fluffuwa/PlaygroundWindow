@@ -1,11 +1,11 @@
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 class Drawer {
-    private Network n;
-    private NetworkDisplay nd;
-    Drawer (Network n, NetworkDisplay nd){
+    private final Network n;
+    private final NetworkDisplay nd;
+    Drawer (final Network n, NetworkDisplay nd){
         this.n = n;
         this.nd = nd;
 
@@ -25,45 +25,47 @@ class Drawer {
             }});
         nd.addButton (">/II slow training", new Action () {
             void thing() {
-            if (stop) {
-                stop = false;
-                Thread tempThread = new Thread(() ->{
-                    long time = System.currentTimeMillis();
-                    while (!stop) {
-                        //n.runBatch();
-                        //try {
-                        //    Thread.sleep(30);
-                        //}
-                        //catch (Exception f){
-                        //    System.out.println ("sleeping failed");
-                        //}
+                if (stop) {
+                    stop = false;
+                    Thread tempThread = new Thread(){
+                        public void run () {
+                            long time = System.currentTimeMillis();
+                            while (!stop) {
+                                //n.runBatch();
+                                //try {
+                                //    Thread.sleep(30);
+                                //}
+                                //catch (Exception f){
+                                //    System.out.println ("sleeping failed");
+                                //}
 
-                        try {
-                            Thread.sleep((int)(Math.max (-(System.currentTimeMillis () - time - 30), 0)));
-                            time = System.currentTimeMillis();
-                            n.runBatch();
-                        } catch (Exception g) {
-                            System.out.println("um");
-                        }
-                    }
-                });
-                tempThread.start();
+                                try {
+                                    Thread.sleep((int) (Math.max(-(System.currentTimeMillis() - time - 30), 0)));
+                                    time = System.currentTimeMillis();
+                                    n.runBatch();
+                                } catch (Exception g) {
+                                    System.out.println("um");
+                                }
+                            }
+                        }};
+                    tempThread.start();
 
-            } else
-                stop = true;
-        }});
+                } else
+                    stop = true;
+            }});
         nd.addButton (">/II fast training",new Action () {
             void thing() {
                 if (stop) {
                     stop = false;
-                    Thread tempThread = new Thread(() -> {
-                        while (!stop) {
-                            try {
-                                n.runBatch();
+                    Thread tempThread = new Thread() {
+                        public void run (){
+                            while (!stop) {
+                                try {
+                                    n.runBatch();
+                                }
+                                catch (Exception e){}
                             }
-                            catch (Exception e){}
-                        }
-                    });
+                        }};
                     tempThread.start();
                 } else
                     stop = true;
@@ -74,11 +76,6 @@ class Drawer {
             void thing() {n.lr /= 2.0;}});
         nd.addButton ("update network", new Action () {
             void thing() {updateNetwork = true;}});
-
-        halfred = new Color(255, 0, 0, 122);
-        halfblue = new Color (0, 0, 255, 122);
-        halfwhite = new Color (255, 255, 255, 122);
-        fullwhite = new Color (255, 255, 255);
     }
 
     boolean stop = true;
@@ -86,10 +83,6 @@ class Drawer {
     int windowWidth;
     int windowHeight;
 
-    Color halfred;
-    Color halfblue;
-    Color halfwhite;
-    Color fullwhite;
 
     private XY selectedNeuron;
 
@@ -118,7 +111,6 @@ class Drawer {
             ArrayList <String> displayText = new ArrayList<>();
             int neuronRadius = nd.neuronRadius;
             int fontSize = nd.fontSize;
-            nd.setFont (fontSize);
 
             int errorGraphWidth = windowWidth * 7 / 10;
 
@@ -155,15 +147,17 @@ class Drawer {
                 //displayText.add (count+"");
             }
             catch (Exception e){}
+            nd.setStroke (1.0/7.0);
+            nd.setColor (Color.BLACK);
             nd.drawLine(left - 1, 0, left - 1, 101);
             nd.drawLine(left - 1, 101, left + errorGraphWidth, 101);
 
-            nd.drawString(max + "", left - 1, -1, "topright", halfwhite);
-            nd.drawString ("error", left - 10, 50, "middleright", halfwhite);
-            nd.drawString(min + "", left - 1, 101, "bottomright", halfwhite);
-            nd.drawString((n.batchesRun > n.maxErrorRecording ? n.batchesRun - n.maxErrorRecording : 0)+"", left, 101, "topleft", halfwhite);
-            nd.drawString ("batch number", left + errorGraphWidth/2, 111, "topmiddle", halfwhite);
-            nd.drawString(n.batchesRun +"", left + errorGraphWidth, 101, "topright", halfwhite);
+            nd.drawString(max + "", left - 1, -1, "topright", nd.halfwhite);
+            nd.drawString ("error", left - 10, 50, "middleright", nd.halfwhite);
+            nd.drawString(min + "", left - 1, 101, "bottomright", nd.halfwhite);
+            nd.drawString((n.batchesRun > n.maxErrorRecording ? n.batchesRun - n.maxErrorRecording : 0)+"", left, 101, "topleft", nd.halfwhite);
+            nd.drawString ("batch number", left + errorGraphWidth/2, 111, "topmiddle", nd.halfwhite);
+            nd.drawString(n.batchesRun +"", left + errorGraphWidth, 101, "topright", nd.halfwhite);
 
             //if (n.errors.size() > 0)
             //    displayText.add ("current errors: " + n.errors.get(Math.min (n.errors.size(), Network.maxErrorSize)-1)+"");
@@ -181,10 +175,10 @@ class Drawer {
                         double val = layers.get(x).get(y).inputs.get(z).w;
                         if (val > 0) {
                             nd.setStroke (Math.sqrt(val));
-                            nd.setColor(halfblue);
+                            nd.setColor(nd.halfblue);
                         } else {
                             nd.setStroke (Math.sqrt (-val));
-                            nd.setColor(halfred);
+                            nd.setColor(nd.halfred);
                         }
                         nd.drawLine(inputNeuron.x + neuronRadius, inputNeuron.y, thisNeuron.x - neuronRadius, thisNeuron.y);
 
@@ -192,7 +186,7 @@ class Drawer {
                                 (neuronPos.x == selectedNeuron.x && neuronPos.y ==  selectedNeuron.y))
                             ;
                         else
-                            nd.drawDouble(val, (thisNeuron.x + inputNeuron.x) / 2, (thisNeuron.y + inputNeuron.y) / 2, "middle", halfwhite);
+                            nd.drawDouble(val, (thisNeuron.x + inputNeuron.x) / 2, (thisNeuron.y + inputNeuron.y) / 2, "middle", nd.halfwhite);
                     }
                 }
             }
@@ -209,7 +203,7 @@ class Drawer {
                         if ((selectedNeuron.x == x && selectedNeuron.y == y) ||
                                 (neuronPos.x == selectedNeuron.x && neuronPos.y ==  selectedNeuron.y)) {
                             double val = layers.get(x).get(y).inputs.get(z).w;
-                            nd.drawDouble(val, (thisNeuron.x + inputNeuron.x) / 2, (thisNeuron.y + inputNeuron.y) / 2, "middle", fullwhite);
+                            nd.drawDouble(val, (thisNeuron.x + inputNeuron.x) / 2, (thisNeuron.y + inputNeuron.y) / 2, "middle", nd.fullwhite);
                         }
                     }
                 }
@@ -233,12 +227,12 @@ class Drawer {
                             thisNeuron.y - neuronRadius,
                             neuronRadius * 2, neuronRadius * 2);
                     if (neuron == n.selectedNeuron){
-                        nd.drawDouble(neuron.value, thisNeuron.x, thisNeuron.y, "middle", fullwhite);
-                        nd.drawDouble(bias, thisNeuron.x, thisNeuron.y + neuronRadius + 10, "middle", fullwhite);
+                        nd.drawDouble(neuron.value, thisNeuron.x, thisNeuron.y, "middle", nd.fullwhite);
+                        nd.drawDouble(bias, thisNeuron.x, thisNeuron.y + neuronRadius + 10, "middle", nd.fullwhite);
                     }
                     else {
-                        nd.drawDouble(neuron.value, thisNeuron.x, thisNeuron.y, "middle", halfwhite);
-                        nd.drawDouble(bias, thisNeuron.x, thisNeuron.y + neuronRadius + 10, "middle", halfwhite);
+                        nd.drawDouble(neuron.value, thisNeuron.x, thisNeuron.y, "middle", nd.halfwhite);
+                        nd.drawDouble(bias, thisNeuron.x, thisNeuron.y + neuronRadius + 10, "middle", nd.halfwhite);
                     }
                 }
 
@@ -247,12 +241,12 @@ class Drawer {
             for (int x = 0; x < n.inputs.size(); x++) {
                 XY pos0 = getNeuronLocationInArrayArray(n.inputs.get(x));
                 XY pos = positions.get(pos0.x).get (pos0.y);
-                nd.drawString("in " + x, pos.x - neuronRadius * 2, pos.y, "middle", halfwhite);
+                nd.drawString("in " + x, pos.x - neuronRadius * 2, pos.y, "middle", nd.halfwhite);
             }
             for (int x = 0; x < n.outputs.size(); x++) {
                 XY pos0 = getNeuronLocationInArrayArray(n.outputs.get(x));
                 XY pos = positions.get(pos0.x).get(pos0.y);
-                nd.drawString("out " + x, pos.x + neuronRadius * 2, pos.y, "middle", halfwhite);
+                nd.drawString("out " + x, pos.x + neuronRadius * 2, pos.y, "middle", nd.halfwhite);
             }
 
 
@@ -293,13 +287,13 @@ class Drawer {
 
                 nd.drawString (selectedNeuron.x + ", " + selectedNeuron.y,
                         windowWidth - dataSquareSide/2,
-                        top - 10, "topmiddle", halfwhite);
+                        top - 10, "bottommiddle", nd.halfwhite);
 
-                nd.drawDouble (maxes [0], windowWidth, top + dataSquareSide,"topright", halfwhite);
-                nd.drawDouble (mins[0], windowWidth - dataSquareSide, top + dataSquareSide, "topleft", halfwhite);
+                nd.drawDouble (maxes [0], windowWidth, top + dataSquareSide,"topright", nd.halfwhite);
+                nd.drawDouble (mins[0], windowWidth - dataSquareSide, top + dataSquareSide, "topleft", nd.halfwhite);
 
-                nd.drawDouble (maxes[1], windowWidth - dataSquareSide, top, "topright", halfwhite);
-                nd.drawDouble (mins [1], windowWidth - dataSquareSide, top + dataSquareSide, "bottomright", halfwhite);
+                nd.drawDouble (maxes[1], windowWidth - dataSquareSide, top, "topright", nd.halfwhite);
+                nd.drawDouble (mins [1], windowWidth - dataSquareSide, top + dataSquareSide, "bottomright", nd.halfwhite);
 
                 for (int x = 0; x < lastBatch.size(); x ++){
                     double [] thisCase = lastBatch.get(x);
@@ -319,14 +313,14 @@ class Drawer {
 
                     if (color < 0) {
                         color = -color;
-                        nd.setColor(new Color(color, 0, 0, 30));
+                        nd.setColor(30, color, 0, 0);
                     } else
-                        nd.setColor(new Color(0, 0, color, 30));
+                        nd.setColor(30, 0, 0, color);
 
                     //nd.drawRect (xPosition, yPosition, 1, 1);
                     //nd.drawRect (xPosition-1, yPosition-1, 3, 3);
                     //nd.drawSplotch (xPosition - 3, yPosition - 3, 6);
-                    nd.drawOval (xPosition - 12, yPosition - 12, 24, 24);
+                    nd.drawRect (xPosition - 12, yPosition - 12, 24, 24);
                     //nd.drawOval (xPosition - 6, yPosition - 6, 12, 12);
                     //nd.drawOval (xPosition - 3, yPosition - 3, 6, 6);
                     //nd.setAlpha (122);
@@ -342,11 +336,9 @@ class Drawer {
 
             displayText.add ("lr: " + n.lr);
 
-            displayText.add (nd.keyboard);
-
             nd.setColor(Color.BLACK);
             for (int x = 0; x < displayText.size(); x++)
-                nd.drawString(displayText.get(x), 0, fontSize * (x + 1), "topleft", halfwhite);
+                nd.drawString(displayText.get(x), 0, fontSize * (x + 1), "topleft", nd.halfwhite);
         }
         catch (Exception e){
             System.out.println (e.toString().substring (0, 20));
@@ -382,7 +374,7 @@ class Drawer {
             positions = new ArrayList<>();
             for (int x = 0; x < layers.size(); x ++){
                 int nneurons = layers.get(x).size();
-                positions.add (new ArrayList<>());
+                positions.add (new ArrayList<XY>());
                 for (int y = 0; y < nneurons; y ++){
                     positions.get(x).add (new XY((int)(windowWidth*(x+0.5)/(width+1)), windowHeight*(y+2)/(nneurons+3)));
 

@@ -6,12 +6,12 @@ import java.util.Collections;
 public class Network {//maybe wants some way to link multiple neurons together? for convolutional layers y'know
 
 
-    int testCase = QA.maxQA-1;
-    int[] hiddenLayerSizes = {4, 4, 2};
+    int testCase = QA.maxQA;
+    int[] hiddenLayerSizes = {5, 2};
 
     int batchSize = 1000;
 
-    int maxErrorRecording = 10000;
+    int maxErrorRecording = NetworkDisplay.maxErrorRecording;
 
     double lr = 0.05;
 

@@ -15,6 +15,7 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     int fontSize = 12;
     int buttonrows = 2;
     int buttonHeight = 40;
+    static int maxErrorRecording = 10000;
 
     public NetworkDisplay() {
         super ("Net");
@@ -39,6 +40,7 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
             public void paintComponent (Graphics g) {
                 if (d != null){
                     NetworkDisplay.this.g = g;//set this class' graphics for drawer to draw on
+                    g.setFont(g.getFont().deriveFont(fontSize));
                     d.draw();
                 }
             }
@@ -65,8 +67,8 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
             @Override
             public void run (){
                 while (true) {
-                    process ();
                     repaint();
+                    d.updateNetwork();
                     try {
                         Thread.sleep((int)(Math.max (-(System.currentTimeMillis () - time - 33), 0)));
                     } catch (Exception e) {
@@ -81,8 +83,17 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
 
         d.windowWidth = getContentPane().getSize().width;
         d.windowHeight = getContentPane().getSize().height;
+
+        halfred = new Color(255, 0, 0, 122);
+        halfblue = new Color (0, 0, 255, 122);
+        halfwhite = new Color (255, 255, 255, 122);
+        fullwhite = new Color (255, 255, 255);
     }
 
+    Color halfred;
+    Color halfblue;
+    Color halfwhite;
+    Color fullwhite;
 
     private ArrayList<JButton> buttons = new ArrayList<>();
     void addButton (String name, Action e){
@@ -110,15 +121,11 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     void setStroke (double value){
         ((Graphics2D) g).setStroke(new BasicStroke((float) value * thicknessMultiplier));
     }
-    void setFont (float font){
-        g.setFont(g.getFont().deriveFont(font));
+    void setColor (Color color){
+        g.setColor (color);
     }
-    void setAlpha (int value){
-        Color c = g.getColor ();
-        g.setColor (new Color (c.getRed (), c.getGreen(), c.getBlue (), value));
-    }
-    void setColor (Color c){
-        g.setColor (c);
+    void setColor (int a, int r, int green, int b){
+        g.setColor (new Color (r, green, b, a));
     }
     void drawRect (int x, int y, int width, int height){
         g.fillRect (x, y, width, height);
@@ -159,6 +166,8 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
             g.fillRect (x - width/2, y - fontSize + 1, width, fontSize);
         if (position.equals ("middleright"))
             g.fillRect (x - width, y - fontSize/2, width, fontSize);
+        if (position.equals ("middleleft"))
+            g.fillRect (x, y - fontSize/2, width, fontSize);
 
         g.setColor (Color.BLACK);
         if (position.equals ("middle"))
@@ -177,6 +186,8 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
             g.drawString (text, x - width/2, y);
         if (position.equals ("middleright"))
             g.drawString (text, x - width, y + fontSize/2);
+        if (position.equals ("middleleft"))
+            g.drawString (text, x, y + fontSize/2);
     }
     void drawDouble (double text, int x, int y, String position, Color bg){
         drawString ((Math.round(text * 1000.0)/1000.0)+"", x, y, position, bg);
@@ -184,10 +195,6 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     //void drawDouble (double text, int decimals, int x, int y, String position){
     //    drawString ((Math.round(text * Math.pow (10, decimals))/Math.pow (10, decimals))+"", x, y, position);
     //}
-
-    private void process (){
-        d.updateNetwork();
-    }
 
     String keyboard="";
 
