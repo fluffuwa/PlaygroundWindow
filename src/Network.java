@@ -7,13 +7,13 @@ public class Network {//maybe wants some way to link multiple neurons together? 
 
 
     int testCase = QA.maxQA;
-    int[] hiddenLayerSizes = {5, 2};
+    int[] hiddenLayerSizes = {8, 7};
 
     int batchSize = 1000;
 
     int maxErrorRecording = NetworkDisplay.maxErrorRecording;
 
-    double lr = 0.05;
+    double lr = 0.1;
 
     public Network() {
 

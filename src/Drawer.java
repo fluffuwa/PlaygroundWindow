@@ -74,8 +74,8 @@ class Drawer {
             void thing() { n.lr *= 2.0;}});
         nd.addButton ("lr / 2", new Action () {
             void thing() {n.lr /= 2.0;}});
-        nd.addButton ("update network", new Action () {
-            void thing() {updateNetwork = true;}});
+        //nd.addButton ("update network", new Action () {
+            //void thing() {updateNetwork = true;}});
     }
 
     boolean stop = true;
@@ -283,22 +283,49 @@ class Drawer {
                 }
             }
 
-            if (n.inputs.size() == 2 && n.selectedNeuron.functionType == Neuron.FunctionType.SIGMOID){
+            if (n.inputs.size() == 1){
+                nd.drawString (selectedNeuron.x + ", " + selectedNeuron.y, windowWidth - dataSquareSide/2, top - 1 - fontSize, "bottommiddle", nd.halfwhite);
+                nd.drawString (((int)(mins[1]*1000))/1000.0 + " to " +((int)(maxes[1]*1000))/1000.0, windowWidth, top - 1, "bottomright", nd.halfwhite);
 
-                nd.drawString (selectedNeuron.x + ", " + selectedNeuron.y,
-                        windowWidth - dataSquareSide/2,
-                        top - 10, "bottommiddle", nd.halfwhite);
+                nd.drawDouble (maxes [0], windowWidth, top + dataSquareSide + 1,"topright", nd.halfwhite);
+                nd.drawDouble (mins[0], windowWidth - dataSquareSide-1, top + dataSquareSide+ 1, "topleft", nd.halfwhite);
 
-                nd.drawDouble (maxes [0], windowWidth, top + dataSquareSide,"topright", nd.halfwhite);
-                nd.drawDouble (mins[0], windowWidth - dataSquareSide, top + dataSquareSide, "topleft", nd.halfwhite);
-
-                nd.drawDouble (maxes[1], windowWidth - dataSquareSide, top, "topright", nd.halfwhite);
-                nd.drawDouble (mins [1], windowWidth - dataSquareSide, top + dataSquareSide, "bottomright", nd.halfwhite);
+                nd.drawDouble (maxes[1], windowWidth - dataSquareSide- 1, top, "topright", nd.halfwhite);
+                nd.drawDouble (mins [1], windowWidth - dataSquareSide- 1, top + dataSquareSide , "bottomright", nd.halfwhite);
 
                 for (int x = 0; x < lastBatch.size(); x ++){
+
                     double [] thisCase = lastBatch.get(x);
 
                     int xPosition = (int)(left + dataSquareSide * ((thisCase [0] - mins [0])/(maxes [0] - mins [0])));
+                    int yPosition = (int)(top + dataSquareSide - dataSquareSide * ((thisCase [1] - mins [1])/(maxes [1] - mins [1])));
+                        nd.setColor(255, 0, 0, 0);
+
+                    nd.drawRect (xPosition, yPosition,1, 1);
+                }
+
+
+            }
+            if (n.inputs.size() == 2 /*&& maxes [2] <= 1 && mins [2] >= -1*//*n.selectedNeuron.functionType == Neuron.FunctionType.SIGMOID*/){
+
+                int rectRadiusish = 12;
+
+                nd.drawString (selectedNeuron.x + ", " + selectedNeuron.y,
+                        windowWidth - dataSquareSide/2 - rectRadiusish,
+                        top - rectRadiusish - 1 - fontSize, "bottommiddle", nd.halfwhite);
+                nd.drawString (((int)(mins[2]*1000))/1000.0 + "(red) to " + ((int)(maxes[2]*1000))/1000.0 + "(blue)", windowWidth, top - 1 - rectRadiusish, "bottomright", nd.halfwhite);
+
+                nd.drawDouble (maxes [0], windowWidth, top + dataSquareSide + rectRadiusish + 1,"topright", nd.halfwhite);
+                nd.drawDouble (mins[0], windowWidth - dataSquareSide - rectRadiusish*2, top + dataSquareSide + rectRadiusish + 1, "topleft", nd.halfwhite);
+
+                nd.drawDouble (maxes[1], windowWidth - dataSquareSide - rectRadiusish*2 - 1, top - rectRadiusish, "topright", nd.halfwhite);
+                nd.drawDouble (mins [1], windowWidth - dataSquareSide - rectRadiusish*2 - 1, top + dataSquareSide + rectRadiusish, "bottomright", nd.halfwhite);
+
+                for (int x = 0; x < lastBatch.size(); x ++){
+
+                    double [] thisCase = lastBatch.get(x);
+
+                    int xPosition = (int)(left + dataSquareSide * ((thisCase [0] - mins [0])/(maxes [0] - mins [0])) - rectRadiusish);
                     int yPosition = (int)(top + dataSquareSide - dataSquareSide * ((thisCase [1] - mins [1])/(maxes [1] - mins [1])));
                     int color = (int)(((thisCase [2] - mins [2])/(maxes [2] - mins [2])) * 255.0 * 2.0 - 255.0);
 
@@ -320,7 +347,8 @@ class Drawer {
                     //nd.drawRect (xPosition, yPosition, 1, 1);
                     //nd.drawRect (xPosition-1, yPosition-1, 3, 3);
                     //nd.drawSplotch (xPosition - 3, yPosition - 3, 6);
-                    nd.drawRect (xPosition - 12, yPosition - 12, 24, 24);
+                    nd.drawRect (xPosition - rectRadiusish, yPosition - rectRadiusish,
+                            rectRadiusish*2+1, rectRadiusish*2+1);
                     //nd.drawOval (xPosition - 6, yPosition - 6, 12, 12);
                     //nd.drawOval (xPosition - 3, yPosition - 3, 6, 6);
                     //nd.setAlpha (122);
@@ -338,11 +366,13 @@ class Drawer {
 
             nd.setColor(Color.BLACK);
             for (int x = 0; x < displayText.size(); x++)
-                nd.drawString(displayText.get(x), 0, fontSize * (x + 1), "topleft", nd.halfwhite);
+                nd.drawString(displayText.get(x), 0, fontSize * x, "topleft", nd.halfwhite);
         }
         catch (Exception e){
-            System.out.println (e.toString().substring (0, 20));
-            //e.printStackTrace();
+            //System.out.println (e.toString().substring (0, 20));
+            e.printStackTrace();
+            n.setQAArray();
+            n.setNetworkForQA();
             updateNetwork = true;
         }
     }

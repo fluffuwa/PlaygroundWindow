@@ -2,9 +2,13 @@ press and drag neuron onto another neuron to merge them, (averaging their inputs
 long press to delete neuron
 double press to add a neuron to that layer (random inputs, 0 for weight to outputs)
 
-"trim" button to automatically to the above
+"trim" button to have the program do the above?
 
 a txt file containing the "startup" settings (for both android and windows)
  - neuron radius, font size, thicknessmultiplier, selectedneuron value graph "dot" size
  - and testcase (number or some funky user-inputted equation)
+
+make decimal always in the same spot, to make it easier to see how weights are changing, and about the average neuron value
+
+add realoutputs graph thing to compare
 
