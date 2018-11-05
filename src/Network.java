@@ -6,7 +6,7 @@ import java.util.Collections;
 public class Network {//maybe wants some way to link multiple neurons together? for convolutional layers y'know
 
 
-    int testCase = QA.maxQA;
+    int testCase = 17;
     int[] hiddenLayerSizes = {8, 7};
 
     int batchSize = 1000;
@@ -15,7 +15,7 @@ public class Network {//maybe wants some way to link multiple neurons together? 
 
     double lr = 0.1;
 
-    public Network() {
+    Network() {
 
         setQAArray();
 
@@ -34,7 +34,7 @@ public class Network {//maybe wants some way to link multiple neurons together? 
     ArrayList<Double> errors = new ArrayList<>();
     ArrayList<QA> QAArray = new ArrayList<>();
 
-    public void setQAArray() {
+    void setQAArray() {
         ArrayList <QA>tempQAArray = new ArrayList<>();
         for (int x = 0; x < batchSize; x++)
             tempQAArray.add(new QA(testCase));
@@ -42,12 +42,12 @@ public class Network {//maybe wants some way to link multiple neurons together? 
     }
 
 
-    public void setNetworkForQA (){
+    void setNetworkForQA (){
         neurons = new ArrayList<>();
         inputs = new ArrayList<>();
         outputs = new ArrayList<>();
 
-        for (int x = 0; x < QAArray.get(0).realInputs.length; x++)
+        for (int x = QAArray.get(0).realInputs.length; x > 0; x--)
             addInput();
         boolean[] sigmoidOrLinear = new boolean[QAArray.get(0).realOutputs.length];//true means sigmoid
         Arrays.fill(sigmoidOrLinear, true);
@@ -98,16 +98,21 @@ public class Network {//maybe wants some way to link multiple neurons together? 
         for (int count2 = 0; count2 < batchSize; count2++) {
             QA test = QAArray.get(count2);
 
-            double[] results = feedForward(test.realInputs);
+            try {
+                double[] results = feedForward(test.realInputs);
 
-            double[] record = new double[inputs.size() + 1];
-            for (int x = 0; x < inputs.size(); x++) {
-                record[x] = test.realInputs[x];
+                double[] record = new double[inputs.size() + 1];
+                for (int x = 0; x < inputs.size(); x++) {
+                    record[x] = test.realInputs[x];
+                }
+                record[inputs.size()] = selectedNeuron.value;
+                nextBatchPoints.add(record);
+
+                totalError += (backprop(test.realOutputs));
             }
-            record[inputs.size()] = selectedNeuron.value;
-            nextBatchPoints.add (record);
-
-            totalError += (backprop(test.realOutputs));
+            catch (Exception e){
+                //ignore
+            }
         }
         if (errors.size() == maxErrorRecording)
             errors.remove(0);
@@ -121,10 +126,14 @@ public class Network {//maybe wants some way to link multiple neurons together? 
     //}
 
     //returns output neuron values
-    public double[] feedForward(double[] inputValues) {
+    public double[] feedForward(double[] inputValues) throws Exception{
         sortNeurons();
-        if (inputValues.length != inputs.size())
-            System.out.println("real input size not equal to net input size");
+        if (inputValues.length != inputs.size()) {
+            //System.out.println("real input size not equal to net input size");
+            //setQAArray();
+            //setNetworkForQA();
+            throw new Exception();
+        }
         for (int x = 0; x < inputs.size(); x++)
             inputs.get(x).bias = inputValues[x];
         for (int x = 0; x < neurons.size(); x++)
@@ -136,10 +145,12 @@ public class Network {//maybe wants some way to link multiple neurons together? 
     }
 
     //returns error value
-    public double backprop(double[] realValues) {
+    public double backprop(double[] realValues)throws Exception {
         //sortNeurons(); shouldn't need to sort.
-        if (realValues.length != outputs.size())
-            System.out.println("net output and real output not same size");
+        if (realValues.length != outputs.size()) {
+            //System.out.println("net output and real output not same size");
+            throw new Exception ();
+        }
         for (int x = 0; x < outputs.size(); x++)
             outputs.get(x).error = outputs.get(x).value - realValues[x];
         for (int x = neurons.size() - 1; x >= 0; x--)

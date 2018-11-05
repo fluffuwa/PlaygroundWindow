@@ -12,3 +12,14 @@ make decimal always in the same spot, to make it easier to see how weights are c
 
 add realoutputs graph thing to compare
 
+add add text area to networkdisplay
+
+save network and load network
+
+give training data from text input
+
+glitches when minimized and maximized
+
+arrows on weights so it's obvious where the data's going after neurons have been dragged around
+
+remake QA

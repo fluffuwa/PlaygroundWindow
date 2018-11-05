@@ -3,13 +3,13 @@ import java.util.ArrayList;
 public class Neuron {
     public enum FunctionType {SIGMOID, LINEAR, RELU}
 
-    ;
+
 
     static double randomValue() {
         return (Math.random() - 0.5);//divided by some number
     }
 
-    public Neuron(FunctionType functionType) {
+    Neuron(FunctionType functionType) {
         bias = randomValue();
         this.functionType = functionType;
     }
@@ -30,17 +30,20 @@ public class Neuron {
 
     //use input neurons and weights to calculate this neuron's value
     //if this is an input neuron, manually edit the bias to be the neuron's value
-    public void forward() {
+    void forward() {
         double tempValue = bias;
-        for (int x = 0; x < inputs.size(); x++) {
-            tempValue += inputs.get(x).getWeightedValue();
+        //for (int x = 0; x < inputs.size(); x++) {
+        //    tempValue += inputs.get(x).getWeightedValue();
+        //}
+        for (Weight w:inputs){
+            tempValue += w.getWeightedValue();
         }
         value = activation(tempValue);//tempValue isn't kept, so the derivative uses value, since it's been sigmoided.
     }
 
     //use backpropagation to update input and bias weights.
     //manually edit the error value if it's an output neuron (if it doesn't have any outputs)
-    public void backward(double lr) {
+    void backward(double lr) {
         if (outputs.size() != 0) {
             double tempError = 0;
             for (int x = 0; x < outputs.size(); x++) {
@@ -57,7 +60,7 @@ public class Neuron {
         bias = bias - error * derivative * (lr/(inputs.size()+1));//multiply learning rate over inputs by the average range of the inputs?
     }
 
-    public double activation(double in) {
+    private double activation(double in) {
         switch (functionType) {
             case SIGMOID:
                 return (1.0 / (1.0 + Math.exp(-in)));
@@ -70,7 +73,7 @@ public class Neuron {
         return -1;
     }
 
-    public double derivative(double in) {
+    private double derivative(double in) {
         switch (functionType) {
             case SIGMOID:
                 //return (activation (in) * (1.0 - activation(in))); <- this doesn't work lol.

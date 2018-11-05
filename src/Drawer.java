@@ -75,7 +75,7 @@ class Drawer {
         nd.addButton ("lr / 2", new Action () {
             void thing() {n.lr /= 2.0;}});
         //nd.addButton ("update network", new Action () {
-            //void thing() {updateNetwork = true;}});
+        //    void thing() {updateNetwork = true;}});
     }
 
     boolean stop = true;
@@ -86,7 +86,8 @@ class Drawer {
 
     private XY selectedNeuron;
 
-    void userClicked (int xPos, int yPos){
+    boolean justClickedANeuron = false;
+    void userPressed(int xPos, int yPos){
         //select the neuron
         for (int x = 0; x < positions.size(); x ++){
             for (int y = 0; y < positions.get(x).size(); y ++){
@@ -98,9 +99,53 @@ class Drawer {
                     //System.out.println (x + ", " + y);
                     selectedNeuron = new XY(x, y);
                     n.selectedNeuron = layers.get(x).get(y);
+                    justClickedANeuron = true;
                     return; //if a neuron was pressed, exit this method so the click isn't "reused".
                 }
             }
+        }
+    }
+    void userRightPressed (int xPos, int yPos){
+        //for (int x = 0; x < positions.size(); x ++){
+        //    for (int y = 0; y < positions.get(x).size(); y ++){
+        //        XY neuronPosition = positions.get(x).get(y);
+        //        if (xPos > neuronPosition.x - nd.neuronRadius &&
+        //                xPos < neuronPosition.x + nd.neuronRadius &&
+        //                yPos > neuronPosition.y - nd.neuronRadius &&
+        //                yPos < neuronPosition.y + nd.neuronRadius){
+        //            //System.out.println (x + ", " + y);
+        //            Neuron n2 = layers.get(x).get(y);
+        //            for (int x = 0; x < n2.inputs.size(); x ++)
+        //                n.neurons.get(n2.inputs.get(x).n1).outputs.remove (n.neurons.get(n2).inputs.get(x));//ffffffffffffffffffff
+        //            n.neurons.remove (n2);
+        //            layers.get(x).remove (y);
+        //            positions.get(x).remove(y);
+        //            //and remove weights and shit
+        //            return; //if a neuron was pressed, exit this method so the click isn't "reused".
+        //        }
+        //    }
+        //}
+
+    }
+    void userDragged (int xPos, int yPos){
+        if (justClickedANeuron){
+            XY pos = positions.get (selectedNeuron.x).get(selectedNeuron.y);
+            pos.x = xPos;
+            pos.y = yPos;
+            //nd.invalidate();
+        }
+    }
+    void userReleased (int xPos, int yPos){
+        if (justClickedANeuron){
+            //don't set posx and posy, bc the user might have just clicked normally, not click and dragged
+
+
+            //nd.invalidate();
+
+            //check if it's on top of a neuron to merge them I guess
+
+
+            justClickedANeuron = false;
         }
     }
 
@@ -381,6 +426,7 @@ class Drawer {
 
     boolean updateNetwork = true;
     private boolean working = false;
+    //resets neuron positions and stuff
     public void updateNetwork (){
         if (updateNetwork && !working){
             updateNetwork = false;
@@ -429,7 +475,11 @@ class Drawer {
             }
         }
         System.out.println ("neuron not found");
-        return new XY (-1, -1);
+        this.n.setQAArray();
+        this.n.setNetworkForQA();
+        updateNetwork = true;
+        updateNetwork();
+        return new XY (0, 0);
     }
 
 }

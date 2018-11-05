@@ -2,12 +2,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /*
 - make output distribution thing for ANY neuron, if it's a SELECTED neuron.
  */
-public class NetworkDisplay extends JFrame implements KeyListener, MouseListener{
+public class NetworkDisplay extends JFrame implements KeyListener, MouseListener, MouseMotionListener{
 
     Network n;
     Drawer d;
@@ -32,12 +31,14 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
 
         addKeyListener(this);
         addMouseListener (this);
+        addMouseMotionListener(this);
 
         setLayout (null);
         setVisible (true);
 
         setContentPane (new JPanel (){
             public void paintComponent (Graphics g) {
+                super.paintComponent (g);
                 if (d != null){
                     NetworkDisplay.this.g = g;//set this class' graphics for drawer to draw on
                     g.setFont(g.getFont().deriveFont(fontSize));
@@ -48,6 +49,7 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
 
         d = new Drawer (n, this);
 
+        //also affected by window minimizing and maximizing
         addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent componentEvent) {
                 d.updateNetwork = true;
@@ -133,14 +135,6 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     void drawOval (int x, int y, int diameter1, int diameter2){
         g.fillOval (x, y, diameter1, diameter2);
     }
-    //void drawSplotch (int x, int y, int diameter){
-    //    Color c = g.getColor ();
-    //    for (int count = 1; count <= diameter/2; count ++){
-    //        setColor (new Color (c.getRed (), c.getGreen(), c.getBlue(), (int)(255.0 * count / diameter)));
-    //        g.drawOval (x + count - 1, y + count - 1, diameter - count + 1, diameter - count + 1);
-    //    }
-    //    //g.drawOval (x, y, diameter1, diameter2);
-    //}
     void drawLine (int x1, int y1, int x2, int y2){
         g.drawLine (x1, y1, x2, y2);
     }
@@ -192,9 +186,6 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     void drawDouble (double text, int x, int y, String position, Color bg){
         drawString ((Math.round(text * 1000.0)/1000.0)+"", x, y, position, bg);
     }
-    //void drawDouble (double text, int decimals, int x, int y, String position){
-    //    drawString ((Math.round(text * Math.pow (10, decimals))/Math.pow (10, decimals))+"", x, y, position);
-    //}
 
     String keyboard="";
 
@@ -227,20 +218,37 @@ public class NetworkDisplay extends JFrame implements KeyListener, MouseListener
     public void mouseExited (MouseEvent event){//when mouse exits window range (doesn't need focus)
 
     }
-
-    public void mouseReleased (MouseEvent event){//called when the mouse button is released
-        d.userClicked(event.getX() - 8, event.getY() - 31);
+    public void mouseEntered (MouseEvent event){//when mouse enters window range (doesn't need focus)
+        //System.out.println (event.getX() + ", entered, " + event.getY());
     }
-    public void mousePressed (MouseEvent event){//called when the mouse button is pressed, but doesn't continue firing
-        //System.out.println (event.getX() + ", " + event.getY());
+    public void mouseClicked (MouseEvent event){//does NOT get called after a click and drag
 
+    }
+    public void mouseMoved (MouseEvent event){
+
+    }
+
+    int lastButton;
+    public void mousePressed (MouseEvent event){//called when the mouse button is pressed, but doesn't continue firing
+        lastButton = event.getButton();
+        if (lastButton ==  MouseEvent.BUTTON1)
+            d.userPressed(event.getX() - 8, event.getY() - 31);
+        if (lastButton == MouseEvent.BUTTON2)
+            d.userRightPressed(event.getX() - 8, event.getY() - 31);
+        repaint ();
         //put in click+dragging neurons (with neuronRadius and positions
         //when clicked on, make it the "focused" neuron, showing stats and extra buttons
     }
-    public void mouseEntered (MouseEvent event){//when mouse enters window range (doesn't need focus)
-
+    public void mouseDragged (MouseEvent event) {//event.getButton() is always 0
+        if (lastButton ==  MouseEvent.BUTTON1) {
+            d.userDragged(event.getX() - 8, event.getY() - 31);
+            repaint();
+        }
+        //ystem.out.println (event.getButton());
     }
-    public void mouseClicked (MouseEvent event){//does NOT get called after a click and drag
+    public void mouseReleased (MouseEvent event){//called when the mouse button is released
+        if (lastButton ==  MouseEvent.BUTTON1)
+            d.userReleased(event.getX() - 8, event.getY() - 31);
     }
 
     public static void main (String [] args){
